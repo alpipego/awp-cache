@@ -14,15 +14,13 @@ use Symfony\Component\Cache\Simple\AbstractCache;
 
 class PredisHashCache extends AbstractCache
 {
-    private $path;
+    private $namespace;
     private $redis;
 
-    public function __construct(Client $redisClient, string $path, string $namespace = '', int $defaultLifetime = 0)
+    public function __construct(Client $redisClient, string $namespace, int $defaultLifetime = 0)
     {
-        $this->redis = $redisClient;
-        $this->path  = $path;
-        $namespace   = ! empty($namespace) ? $namespace : $_SERVER['HTTP_HOST'];
-        $namespace   = preg_replace('/[{}()\/\\@:]/', '', $namespace);
+        $this->redis     = $redisClient;
+        $this->namespace = $namespace;
         parent::__construct($namespace, $defaultLifetime);
     }
 
@@ -39,7 +37,7 @@ class PredisHashCache extends AbstractCache
             return [];
         }
 
-        return $this->redis->hmget($this->path, $this->keys($ids));
+        return $this->redis->hmget($this->namespace, $this->keys($ids));
     }
 
     private function keys(array $dictionary) : array
@@ -74,7 +72,7 @@ class PredisHashCache extends AbstractCache
      */
     protected function doHave($id)
     {
-        return (bool)$this->redis->hexists($this->path, $this->key($id));
+        return (bool)$this->redis->hexists($this->namespace, $this->key($id));
     }
 
     /**
@@ -98,7 +96,7 @@ class PredisHashCache extends AbstractCache
      */
     protected function doDelete(array $ids)
     {
-        $this->redis->hdel($this->path, $this->keys($ids));
+        $this->redis->hdel($this->namespace, $this->keys($ids));
     }
 
     /**
@@ -111,7 +109,7 @@ class PredisHashCache extends AbstractCache
      */
     protected function doSave(array $values, $lifetime)
     {
-        $this->redis->hmset($this->path, $this->keys($values));
+        $this->redis->hmset($this->namespace, $this->keys($values));
 
         //        $this->redis->expire($this->path, $lifetime);
 
