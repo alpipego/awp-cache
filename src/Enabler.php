@@ -19,7 +19,6 @@ class Enabler
     private $loggedin = false;
     private $debug = false;
     private $msg = '';
-    private $domain = '';
     private $url;
     private $path = '';
     private $doc = '';
@@ -39,10 +38,9 @@ class Enabler
         $this->setUrl();
     }
 
-    public function setUrl(string $url = null)
+    private function setUrl()
     {
-        $url        = ! is_null($url) ? str_replace(get_bloginfo('url'), '', $url) : $_SERVER['REQUEST_URI'];
-        $path       = '/'.trim($url, '/');
+        $path       = '/'.trim($_SERVER['REQUEST_URI'], '/');
         $this->url  = preg_replace_callback('/^(.+?)([?&])purge(?:=[^\/&]+)?&?(.*?)$/', function (array $matches) {
             $str = $matches[1].(empty($matches[3]) ? '' : $matches[2]).$matches[3];
             if (substr($str, -1) !== '/') {
@@ -124,11 +122,6 @@ class Enabler
     public function getMessage(): string
     {
         return $this->msg;
-    }
-
-    public function getDomain(): string
-    {
-        return $this->domain;
     }
 
     public function getPath(): string
