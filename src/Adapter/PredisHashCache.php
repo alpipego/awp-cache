@@ -20,7 +20,7 @@ class PredisHashCache extends AbstractCache
     public function __construct(Client $redisClient, string $namespace, int $defaultLifetime = 0)
     {
         $this->redis     = $redisClient;
-        $this->namespace = $namespace;
+        $this->namespace = empty($namespace) ? '_' : $namespace;
         parent::__construct($namespace, $defaultLifetime);
     }
 
