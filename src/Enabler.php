@@ -18,7 +18,6 @@ class Enabler
     private $cloudflare = false;
     private $cache = true;
     private $loggedin = false;
-    private $debug = false;
     private $msg = '';
     private $url;
     private $path = '';
@@ -154,6 +153,8 @@ class Enabler
         ob_start();
 
         define('WP_DEBUG_DISPLAY', false);
+        error_reporting(0);
+        ini_set('display_errors', 0);
 
         require_once $wpBlogHeader;
 
