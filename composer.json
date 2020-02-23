@@ -4,7 +4,8 @@
     "type": "library",
     "require": {
         "psr/simple-cache": "^1.0",
-        "symfony/cache": "^4.0"
+        "symfony/cache": "^4.0",
+        "voku/html-min": "^4.1"
     },
     "license": "MIT",
     "autoload": {
