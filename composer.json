@@ -3,9 +3,13 @@
     "description": "Psr-16 WordPress caching",
     "type": "library",
     "require": {
+        "php": "^7.0",
         "psr/simple-cache": "^1.0",
-        "symfony/cache": "^4.0",
+        "symfony/cache": ">=4.0 <4.3",
         "voku/html-min": "^4.1"
+    },
+    "suggest": {
+        "predis/predis": "^1.1"
     },
     "license": "MIT",
     "autoload": {
