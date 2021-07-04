@@ -84,7 +84,7 @@ class PredisHashCache extends AbstractCache
      */
     protected function doClear($namespace)
     {
-        return (bool)$this->redis->del($namespace);
+        return (bool)$this->redis->del(str_replace(static::NS_SEPARATOR, '', $namespace));
     }
 
     /**
