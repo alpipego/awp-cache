@@ -116,7 +116,7 @@ class Enabler
             return '/' . $path . '/';
         }, apply_filters('alpipego/awp/cache/blacklist', []));
 
-        return (is_404() || is_search() || in_array($this->url, $blacklist));
+        return (is_404() || is_search() || is_feed() || in_array($this->url, $blacklist));
     }
 
     public function getMessage(): string
