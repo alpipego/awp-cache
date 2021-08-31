@@ -83,9 +83,7 @@ class Enabler
             $this->cache = false;
             $this->addMessage('post request ');
         }
-        // don't cache requests to wordpress php files
-        if (preg_match('%(/wp-admin|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(_index)?.xml|[a-z0-9_-]+-sitemap([0-9]+)?.xml)%',
-            $this->path)) {
+        if (preg_match('%(/wp-admin|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/?$|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(_index)?.xml|[a-z0-9_-]+-sitemap([0-9]+)?.xml)%', $this->url)) {
             $this->cache = false;
             $this->addMessage('wordpress file ');
         }
