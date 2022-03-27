@@ -151,7 +151,9 @@ class Enabler
         ob_start();
 
         if (!defined('CACHE_DEBUG') || !CACHE_DEBUG) {
-            define('WP_DEBUG_DISPLAY', false);
+            if (!defined('WP_DEBUG_DISPLAY')) {
+                define('WP_DEBUG_DISPLAY', false);
+            }
             error_reporting(0);
             ini_set('display_errors', '0');
         }
