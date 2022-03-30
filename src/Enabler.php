@@ -73,7 +73,7 @@ class Enabler
             $this->addMessage('request from cloudflare ');
         }
         // don't cache if user is logged in
-        if (strpos('test ' . implode(' ', array_keys($_COOKIE)), 'wordpress_logged_in')) {
+        if (strpos('wordpress_logged_in_' . implode(' ', array_keys($_COOKIE)), 'wordpress_logged_in') !== false) {
             $this->cache    = false;
             $this->loggedin = true;
             $this->addMessage('loggedin user ');
