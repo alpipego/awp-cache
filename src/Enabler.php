@@ -40,8 +40,8 @@ class Enabler
 
     private function setUrl()
     {
-        $path       = '/' . trim($_SERVER['REQUEST_URI'], '/');
-        $this->url  = preg_replace_callback('/^(.+?)([?&])purge(?:=[^\/&]+)?&?(.*?)$/', function (array $matches) {
+        $path      = '/' . trim($_SERVER['REQUEST_URI'], '/');
+        $this->url = preg_replace_callback('/^(.+?)([?&])purge(?:=[^\/&]+)?&?(.*?)$/', static function (array $matches) {
             $str = $matches[1] . (empty($matches[3]) ? '' : $matches[2]) . $matches[3];
             if (substr($str, -1) !== '/') {
                 $str .= '/';
@@ -49,11 +49,12 @@ class Enabler
 
             return $str;
         }, $path);
+
         $path       = array_filter(explode('/', $this->url));
-        $this->doc  = array_pop($path) ?: '_';
-        $path       = implode('_', $path);
-        $path       = preg_replace('/[{}()\/\\@:]/', '_', $path);
+        $doc        = array_pop($path) ?: '_';
+        $path       = preg_replace('/[{}()\/\\@:]/', '_', implode('_', $path));
         $this->path = $path . (substr($path, -1) === '_' ? '' : '_');
+        $this->doc  = ($path === '' ? '' : $this->path) . $doc;
     }
 
     public function cacheable(): bool
