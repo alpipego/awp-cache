@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: alpipego
- * Date: 03.04.18
- * Time: 14:18
- */
+
 declare(strict_types = 1);
 
 namespace Alpipego\AWP\Cache;
@@ -15,16 +10,20 @@ use voku\helper\HtmlMin;
 
 class Enabler
 {
-    private $cloudflare = false;
-    private $cache = true;
-    private $loggedin = false;
-    private $msg = '';
-    private $url;
-    private $path = '';
-    private $doc = '';
+    private bool $cloudflare = false;
+    private bool $cache      = true;
+    private bool $loggedin   = false;
+    /**
+     * @var string[]
+     */
+    private array  $msg  = [];
+    private string $url;
+    private string $path = '';
+    private string $doc  = '';
 
     public function __construct(array $options = [])
     {
+        $this->addMessage('Starting Cache-Enabler');
         foreach ($options as $option => $value) {
             if (gettype($value) !== gettype($this->$option)) {
                 throw new InvalidOptionTypeException($option, gettype($this->$option), gettype($value));
@@ -40,26 +39,27 @@ class Enabler
 
     private function setUrl()
     {
-        $path       = '/' . trim($_SERVER['REQUEST_URI'], '/');
-        $this->url  = preg_replace_callback('/^(.+?)([?&])purge(?:=[^\/&]+)?&?(.*?)$/', function (array $matches) {
+        $path      = '/' . trim($_SERVER['REQUEST_URI'], '/');
+        $this->url = preg_replace_callback('/^(.+?)([?&])purge(?:=[^\/&]+)?&?(.*?)$/', static function (array $matches) {
             $str = $matches[1] . (empty($matches[3]) ? '' : $matches[2]) . $matches[3];
-            if (substr($str, -1) !== '/') {
+            if (!str_ends_with($str, '/')) {
                 $str .= '/';
             }
 
             return $str;
         }, $path);
+
         $path       = array_filter(explode('/', $this->url));
-        $this->doc  = array_pop($path) ?: '_';
-        $path       = implode('_', $path);
-        $path       = preg_replace('/[{}()\/\\@:]/', '_', $path);
-        $this->path = $path . (substr($path, -1) === '_' ? '' : '_');
+        $doc        = array_pop($path) ?: '_';
+        $path       = preg_replace('/[{}()\/\\@:]/', '_', implode('_', $path));
+        $this->path = $path . (str_ends_with($path, '_') ? '' : '_');
+        $this->doc  = ($path === '' ? '' : $this->path) . $doc;
     }
 
     public function cacheable(): bool
     {
         if (!$this->decide()) {
-            throw new NotCacheableRequestException(sprintf('Request cannot be cached: %s', $this->msg));
+            throw new NotCacheableRequestException(sprintf('Request cannot be cached: %s', $this->getMessage()));
         }
 
         return $this->cache;
@@ -70,31 +70,31 @@ class Enabler
         // don't cache if cloudflare is enabled and request from cloudflare
         if ($this->cloudflare && isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
             $this->cache = false;
-            $this->addMessage('request from cloudflare ');
+            $this->addMessage('request from cloudflare');
         }
         // don't cache if user is logged in
         if (strpos('test ' . implode(' ', array_keys($_COOKIE)), 'wordpress_logged_in')) {
             $this->cache    = false;
             $this->loggedin = true;
-            $this->addMessage('loggedin user ');
+            $this->addMessage('Loggedin user');
         }
         // don't cache post requests
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->cache = false;
-            $this->addMessage('post request ');
+            $this->addMessage('Post request');
         }
         // don't cache requests to wordpress php files
         if (preg_match('%(/wp-admin|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(_index)?.xml|[a-z0-9_-]+-sitemap([0-9]+)?.xml)%',
             $this->path)) {
             $this->cache = false;
-            $this->addMessage('wordpress file ');
+            $this->addMessage('This is a WordPress file ');
         }
 
         // don't cache if url has a query string
         // TODO verify that this is reasonable
         if (parse_url($this->url, PHP_URL_QUERY)) {
             $this->cache = false;
-            $this->addMessage('query string ');
+            $this->addMessage('Not caching query strings');
         }
 
         return $this->cache;
@@ -102,7 +102,7 @@ class Enabler
 
     public function addMessage(string $msg): self
     {
-        $this->msg .= $msg . "\n";
+        $this->msg[] = $msg;
 
         return $this;
     }
@@ -116,12 +116,12 @@ class Enabler
             return '/' . $path . '/';
         }, apply_filters('alpipego/awp/cache/blacklist', []));
 
-        return (is_404() || is_search() || in_array($this->url, $blacklist));
+        return (is_404() || is_search() || is_feed() || in_array($this->url, $blacklist));
     }
 
     public function getMessage(): string
     {
-        return $this->msg;
+        return implode('&rarr;', $this->msg);
     }
 
     public function getPath(): string
@@ -153,7 +153,9 @@ class Enabler
         ob_start();
 
         if (!defined('CACHE_DEBUG') || !CACHE_DEBUG) {
-            define('WP_DEBUG_DISPLAY', false);
+            if (!defined('WP_DEBUG_DISPLAY')) {
+                define('WP_DEBUG_DISPLAY', false);
+            }
             error_reporting(0);
             ini_set('display_errors', '0');
         }

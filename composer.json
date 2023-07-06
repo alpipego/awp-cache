@@ -3,9 +3,9 @@
     "description": "Psr-16 WordPress caching",
     "type": "library",
     "require": {
-        "psr/simple-cache": "^1.0",
-        "symfony/cache": "^4.0",
-        "voku/html-min": "^4.1"
+        "php": "^8.1",
+        "voku/html-min": "^4.1",
+        "symfony/cache": "^6.3"
     },
     "license": "MIT",
     "autoload": {

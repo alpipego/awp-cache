@@ -1,47 +1,63 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: alpipego
- * Date: 03.04.18
- * Time: 15:16
- */
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Alpipego\AWP\Cache;
 
-use Symfony\Component\Cache\Simple\AbstractCache;
+use Exception;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 class Cache
 {
-    private $cache;
+    private CacheInterface $cache;
 
-    public function __construct(AbstractCache $cache)
+    public function __construct(CacheInterface $cache)
     {
         $this->cache = $cache;
     }
 
-    public function get(string $key, $default = null)
+    public function get(string $key)
     {
-        return $this->cache->get($key, $default);
+        try {
+            return $this->cache->get($key, static function () {
+                throw new Exception();
+            });
+        } catch (\Exception $exception) {
+            return false;
+        }
     }
 
-    public function has(string $key) : bool
+    public function has(string $key): bool
     {
-        return $this->cache->has($key);
+        try {
+            $this->cache->get($key, static function () {
+                throw new Exception();
+            });
+            return true;
+        } catch (\Exception $exception) {
+            return false;
+        }
     }
 
-    public function set(string $key, $value, $ttl = null) : bool
+    public function set(string $key, string $value)
     {
-        return $this->cache->set($key, $value, $ttl);
+        return $this->cache->get($key, static function (ItemInterface $item) use ($value) {
+            $item->tag(['all_items']);
+            return $value;
+        }, $beta, $metadata);
     }
 
-    public function delete(string $key) : bool
+    /**
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function delete(string $key): bool
     {
         return $this->cache->delete($key);
     }
 
-    public function clear() : bool
+    public function clear(): bool
     {
-        return $this->cache->clear();
+        return $this->cache->invalidateTags(['all_items']);
     }
 }
