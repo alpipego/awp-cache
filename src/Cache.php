@@ -45,7 +45,7 @@ class Cache
         return $this->cache->get($key, static function (ItemInterface $item) use ($value) {
             $item->tag(['all_items']);
             return $value;
-        }, $beta, $metadata);
+        });
     }
 
     /**
