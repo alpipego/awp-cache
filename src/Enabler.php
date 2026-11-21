@@ -151,6 +151,7 @@ class Enabler
     public function buffer(string $wpBlogHeader): string
     {
         ob_start();
+        $level = ob_get_level();
 
         if (!defined('CACHE_DEBUG') || !CACHE_DEBUG) {
             if (!defined('WP_DEBUG_DISPLAY')) {
@@ -161,6 +162,11 @@ class Enabler
         }
 
         require_once $wpBlogHeader;
+
+        // close buffers WordPress left open (e.g. the template enhancement buffer since WP 6.9),
+        // so their output ends up in ours instead of only being flushed on shutdown
+        while (ob_get_level() > $level && ob_end_flush()) {
+        }
 
         return (new HtmlMin())->minify(ob_get_clean());
     }
