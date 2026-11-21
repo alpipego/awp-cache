@@ -168,6 +168,21 @@ class Enabler
         while (ob_get_level() > $level && ob_end_flush()) {
         }
 
-        return (new HtmlMin())->minify(ob_get_clean());
+        $output = ob_get_clean();
+
+        // only minify HTML documents, the minifier breaks feeds and other XML
+        return $this->isHtmlResponse() ? (new HtmlMin())->minify($output) : $output;
+    }
+
+    private function isHtmlResponse(): bool
+    {
+        foreach (headers_list() as $header) {
+            if (stripos($header, 'content-type:') === 0) {
+                return stripos($header, 'text/html') !== false;
+            }
+        }
+
+        // PHP's default content type
+        return true;
     }
 }
